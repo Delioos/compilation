@@ -13,14 +13,29 @@ public class AnalyseurLexical {
     private List<String> motsCles;
     private Scanner scanner;
 
-    public AnalyseurLexical(String cheminFichier) {
-        motsCles = new ArrayList<>();
-        lireFichier(cheminFichier);
+    public AnalyseurLexical(File file) {
+
+        this.motsCles = new ArrayList<>();
+        try {
+            this.scanner = new Scanner(file);
+            String word = "start";
+            while (!word.equals("EOF")) {
+                word  = this.next();
+                motsCles.add(word);
+            }
+            // lireFichier(cheminFichier);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void lireFichier(String cheminFichier) {
+    /**
+     * Récuperer tout les mots clés du fichier source
+     * @param File file : le fichier source
+     */
+    private void lireFichier(File file) {
         try {
-            scanner = new Scanner(new File(cheminFichier));
+            scanner = new Scanner(file);
             Pattern patternMotCle = Pattern.compile("\\w+|[{}]"); // Include brackets in the pattern
 
             while (scanner.hasNext()) {
@@ -50,8 +65,21 @@ public class AnalyseurLexical {
     }
 
     public String next() {
-        if (scanner.hasNext()) {
-            return scanner.next();
+        if (this.scanner.hasNext()) {
+            // le nouveau mot est un commentaire
+            if (this.scanner.hasNext("//")) {
+                this.scanner.nextLine();
+                return this.next();
+            }
+            // le nouveau mot est collé à un commentaire
+            if (this.scanner.hasNext(".*//.*")) {
+                // on recupère le mot avant le commentaire
+                String mot = this.scanner.next();
+                mot = mot.substring(0, mot.indexOf("//"));
+                this.scanner.nextLine();
+                return mot;
+            }
+            return this.scanner.next();
         } else {
             return "EOF";
         }
