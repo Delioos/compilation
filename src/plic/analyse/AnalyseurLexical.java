@@ -19,10 +19,6 @@ public class AnalyseurLexical {
         try {
             this.scanner = new Scanner(file);
             String word = "start";
-            while (!word.equals("EOF")) {
-                word  = this.next();
-                motsCles.add(word);
-            }
             // lireFichier(cheminFichier);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
@@ -33,7 +29,7 @@ public class AnalyseurLexical {
      * Récuperer tout les mots clés du fichier source
      * @param File file : le fichier source
      */
-    private void lireFichier(File file) {
+    private void lireFichierWithPattern(File file) {
         try {
             scanner = new Scanner(file);
             Pattern patternMotCle = Pattern.compile("\\w+|[{}]"); // Include brackets in the pattern

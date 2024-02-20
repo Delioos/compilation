@@ -4,36 +4,39 @@ import plic.analyse.AnalyseurSyntaxique;
 import plic.analyse.ErreurSyntaxique;
 
 import java.io.File;
-import java.util.MissingFormatArgumentException;
+import java.io.FileNotFoundException;
 
 public class Plic {
-    public static void main (String[] args) {
+    public static void main(String[] args) {
+        if (args.length ==  0) {
+            System.out.println("Usage: java Plic <fichier.plic>");
+            return;
+        }
+
         try {
             new Plic(args[0]);
-        } catch (MissingFormatArgumentException e) {
-            System.out.println("Usage: java Plic <fichier.plic>");
-        }
-        catch (RuntimeException e) {
-            System.out.println(e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            System.out.println("Fichier source absent");
+        } catch (RuntimeException e) {
+            System.out.println("ERREUR: " + e.getMessage());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public Plic(String nomFichier) {
-        try {
-            File file = new File(nomFichier) ; // Créer l’analyseur syntaxique
-            AnalyseurSyntaxique as = new AnalyseurSyntaxique(file) ;
-            // Analyse syntaxique du texte source
-            try {
-                as.analyse() ;
-            } catch (ErreurSyntaxique e) {
-                throw new RuntimeException(e);
-            }
+
+    public Plic(String nomFichier) throws FileNotFoundException {
+        File file = new File(nomFichier);
+
+        if (!file.exists()) {
+            throw new FileNotFoundException("Fichier source absent");
         }
-        catch (Exception e) {
-            // proly a FileNotFound
-            e.printStackTrace() ;
+
+        AnalyseurSyntaxique as = new AnalyseurSyntaxique(file);
+
+        try {
+            as.analyse();
+        } catch (ErreurSyntaxique e) {
+            throw new RuntimeException("ERREUR: " + e.getMessage());
         }
     }
 }
