@@ -11,6 +11,7 @@ public class TestScanner {
         final File file = new File(path);
 
         AnalyseurLexical analyseur = new AnalyseurLexical(file);
+        analyseur.readFile(file);
         analyseur.afficherMotsCles();
     }
 }

@@ -1,5 +1,3 @@
-package plic;
-
 import plic.analyse.AnalyseurSyntaxique;
 import plic.analyse.ErreurSyntaxique;
 
@@ -16,7 +14,7 @@ public class Plic {
         try {
             new Plic(args[0]);
         } catch (FileNotFoundException e) {
-            System.out.println("Fichier source absent");
+            System.out.println("ERREUR: Fichier source absent");
         } catch (RuntimeException e) {
             System.out.println("ERREUR: " + e.getMessage());
         } catch (Exception e) {

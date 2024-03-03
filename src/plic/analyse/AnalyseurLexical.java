@@ -25,32 +25,17 @@ public class AnalyseurLexical {
         }
     }
 
-    /**
-     * Récuperer tout les mots clés du fichier source
-     * @param File file : le fichier source
-     */
-    private void lireFichierWithPattern(File file) {
-        try {
-            scanner = new Scanner(file);
-            Pattern patternMotCle = Pattern.compile("\\w+|[{}]"); // Include brackets in the pattern
 
-            while (scanner.hasNext()) {
-                if (scanner.hasNext("//")) { // Skip the whole line if the next entry starts with "//"
-                    scanner.nextLine();
-                    continue;
-                }
-                Matcher matcher = patternMotCle.matcher(scanner.next()); // Analyze each word individually
-                while (matcher.find()) {
-                    motsCles.add(matcher.group());
-                }
+    public void readFile(File file) {
+        try {
+            String word = "start";
+            while (word != "EOF") {
+                word = this.next();
+                this.motsCles.add(word);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if (scanner != null) {
-                scanner.close();
-                motsCles.add("EOF");
-            }
+        }
+        catch (Error e) {
+            System.out.println(e.getStackTrace());
         }
     }
 
@@ -73,11 +58,17 @@ public class AnalyseurLexical {
                 String mot = this.scanner.next();
                 mot = mot.substring(0, mot.indexOf("//"));
                 this.scanner.nextLine();
+
+//                System.out.println("in next: " + mot);
                 return mot;
             }
-            return this.scanner.next();
+
+            String mot = this.scanner.next();
+            //            System.out.println("in next: " + mot);
+            return mot;
         } else {
             return "EOF";
         }
+
     }
 }

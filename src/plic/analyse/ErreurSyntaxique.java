@@ -6,7 +6,7 @@ public class ErreurSyntaxique extends Exception {
     }
 
     public ErreurSyntaxique() {
-        super("ERREUR SYNTAXIQUE MON BROTHER");
+        super("ERREUR: erreur syntaxique detectee mon brother");
     }
 
 }

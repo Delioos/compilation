@@ -2,10 +2,15 @@ package plic.analyse;
 
 
 import java.io.File;
+import plic.repint.DoubleDeclaration;
+import plic.repint.Expression;
+import plic.repint.Symbole;
+import plic.repint.TDS;
 
 public class AnalyseurSyntaxique {
     private AnalyseurLexical analex;
     private String uniteCourante;
+    private TDS tds;
 
 
     public AnalyseurSyntaxique(File file) {
@@ -17,7 +22,7 @@ public class AnalyseurSyntaxique {
      * // la représentation intermédaire sera construite plus tard
      * @throws ErreurSyntaxique
      */
-    public void analyse() throws ErreurSyntaxique {
+    public void analyse() throws ErreurSyntaxique, DoubleDeclaration {
         // Demander la construction  de la première unité lexicale
         this.uniteCourante = this.analex.next();
         this.analyseProg();
@@ -26,14 +31,14 @@ public class AnalyseurSyntaxique {
         }
     }
 
-    private void analyseProg() throws ErreurSyntaxique {
+    private void analyseProg() throws ErreurSyntaxique, DoubleDeclaration {
         if (!this.uniteCourante.equals("programme")) {
-            throw new ErreurSyntaxique("programme attendu");
+            throw new ErreurSyntaxique("ERREUR: Programme attendu");
         }
         this.uniteCourante = this.analex.next();
 
         if(!this.estIdf())
-            throw new ErreurSyntaxique("idf attendu");
+            throw new ErreurSyntaxique("ERREUR: Idf attendu");
         this.uniteCourante = this.analex.next();
 
         this.analyseBloc();
@@ -46,45 +51,65 @@ public class AnalyseurSyntaxique {
         this.uniteCourante = this.analex.next();
     }
 
-    private void analyseBloc() throws ErreurSyntaxique {
+    // Méthode adaptée pour inclure l'analyse des déclarations dans le bloc
+    private void analyseBloc() throws ErreurSyntaxique, DoubleDeclaration {
         this.analyseTerminale("{");
-        // Iterer sur analyseDeclaration tant qu'il y a des declaraiton
-        this.analyseInstruction(); // au moins une instruction
-        // Iterer sur analyseInstruction tant qu'il y a des instructions
+        // Vérification et ajout des déclarations
+        while (this.uniteCourante.equals("entier")) {
+            this.analyseDeclaration();
+        }
+        // Itération sur les instructions tant qu'il y en a
+        this.analyseInstruction();
         this.analyseTerminale("}");
     }
+
+    private void analyseDeclaration() throws ErreurSyntaxique, DoubleDeclaration {
+        if (!this.uniteCourante.equals("entier")) {
+            throw new ErreurSyntaxique("ERREUR: Type de déclaration attendu");
+        }
+        this.uniteCourante = this.analex.next();
+
+        if (!this.estIdf()) {
+            throw new ErreurSyntaxique("ERREUR: Idf attendu");
+        }
+        String idf = this.uniteCourante;
+        this.uniteCourante = this.analex.next();
+
+        // Création du symbole et ajout à la TDS
+        Symbole symbole = new Symbole(idf, "entier");
+        this.tds.ajouter(idf, symbole);
+    }
+    
     private boolean estIdf() {
         // regex pour identifier les identifiants
-        return this.uniteCourante.matches("[a-zA-Z][a-zA-Z]*");
+        return this.uniteCourante.matches("[a-zA-Z]\\w*") && !this.analyseKeyword();
     }
 
-    private boolean estCste() {
-        return this.uniteCourante.matches("\\d+");
+    private boolean analyseKeyword() {
+        return this.uniteCourante.matches("programme|ecrire|lire|entier");
     }
 
     private void analyseInstruction() throws ErreurSyntaxique {
-        if (this.uniteCourante.equals("ecrire")) {
+        if (this.uniteCourante.equals("ecrire")){
             this.analyseEcrire();
-        } else if (this.uniteCourante.equals(":=")) {
-            this.analyseAffection();
         } else {
-            throw new ErreurSyntaxique("Instruction invalide");
+            this.analyseAffection();
         }
     }
     private void analyseEcrire() throws  ErreurSyntaxique {
         this.analyseTerminale("ecrire");
-        this.analyseExpression();
+        Expression expression = this.analyseExpression();
         this.analyseTerminale(";");
     }
     private void analyseAffection() throws ErreurSyntaxique {
         this.analyseAcces();
         this.analyseTerminale(":=");
-        this.analyseExpression();
+        Expression expression = this.analyseExpression();
         this.analyseTerminale(";");
     }
     private void analyseAcces() throws ErreurSyntaxique {
         if (!this.estIdf()) {
-            throw new ErreurSyntaxique("idf attendu");
+            throw new ErreurSyntaxique("ERREUR: Idf attendu");
         }
         this.uniteCourante = this.analex.next();
     }
@@ -93,16 +118,25 @@ public class AnalyseurSyntaxique {
         this.analyseOperande();
     }
 
-    private void analyseOperande() throws ErreurSyntaxique  {
-        if (this.estCste()) {
+    private void analyseOperande() throws ErreurSyntaxique {
+        if (estIdf())
+            this.analyseAcces();
+        else {
+            if (!this.estCstEntiere())
+                throw new ErreurSyntaxique("ERREUR: Entier attendu");
             this.uniteCourante = this.analex.next();
-        } else if (this.estIdf()) {
-            this.uniteCourante = this.analex.next();
-        } else {
-            throw new ErreurSyntaxique("Operande invalide");
         }
     }
 
 
+    private boolean estCstEntiere() {
+        return this.uniteCourante.matches("[0-9]+");
+    }
+
+
+    public String toString() {
+        System.out.println(this.uniteCourante);
+        return this.uniteCourante;
+    }
 }
 
